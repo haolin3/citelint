@@ -1,4 +1,15 @@
 .env
-config.json
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+.tox/
+.pytest_cache/
+.DS_Store
+citelint.html
+citelint_zh.html
+.citelint-bibguard.json
+.citelint-reviews.json

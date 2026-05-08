@@ -1,0 +1,235 @@
+\section{Experiments}
+
+\begin{table}
+  \begin{minipage}{0.99\textwidth}
+\centering  
+\vspace{-4mm}
+\scalebox{0.88}{
+\begin{tabular}{l p{12.5cm} }
+\toprule
+ \multicolumn{2}{l}{\bf Visual input example, Extreme Ironing:}  \\
+\midrule
+&  \includegraphics[height=4.5cm]{figures/img_extreme_ironing.png} \\
+& {\tiny Source:~\url{https://www.barnorama.com/wp-content/uploads/2016/12/03-Confusing-Pictures.jpg}} \\
+
+
+User & What is unusual about this image? \\
+\shortname{} & The unusual aspect of this image is a man ironing clothes on the back of a minivan or van. This is not a typical place to perform this activity, as one would usually iron clothes in a more stationary and safe location, such as a home, using a regular ironing board. The scene depicted in the image is peculiar as it involves a makeshift ironing setup on a vehicle, which can be both unsafe and unconventional. Additionally, it is not clear how the man is able to maintain balance and stability while ironing clothes in such an unstable environment.
+\\
+ & [{\it Start a new conversation, and clear the history}] \\
+User & What’s happening in the scene? \\
+\shortname{} & The image depicts a man standing on top of a yellow SUV in a busy city street. He is holding a portable ladder, seemingly ironing clothes while standing on the vehicle. Around the scene, there are other cars, a traffic light, and a fire hydrant. Additionally, there are two other people in the vicinity, one close to the man on the car and another further away. The man on the ladder appears to be attracting attention \textcolor{blue}{due to his unconventional choice of ironing his clothes on top of a moving car}. The city street around him is bustling with activity, adding to the unique nature of the scene.
+\\
+\midrule
+User & What is unusual about this image? \\
+GPT-4~\cite{gpt4} &  The unusual thing about this image is that a man is ironing clothes on an ironing
+board attached to the roof of a moving taxi.
+\\ \midrule
+User & What is unusual about this image? \\
+BLIP-2 & a man is sitting on the back of a yellow cab
+\\ \midrule
+User & What is unusual about this image? \\
+OpenFlamingo & The man is drying his clothes on the hood of his car.
+\\
+\bottomrule
+\end{tabular}
+}
+\vspace{1mm}
+\captionof{table}{Example prompt from GPT-4 paper~\cite{gpt4} to compare visual reasoning and chat capabilities. Compared to BLIP-2~\cite{li2023blip} and OpenFlamingo~\cite{anas_awadalla_2023_7733589}, \shortname{} accurately follows the user's instructions, instead of simply describing the scene. \shortname{} offers a more comprehensive response than GPT-4. Even when merely asked to describe the image, \shortname{} identifies atypical aspects of the image.}
+\vspace{-5mm}
+\label{tab:visual_example_ironing}  
+  \end{minipage}
+\end{table}
+
+
+We assess the performance of \shortname{} in  instruction-following and visual reasoning capabilities with two primary experimental settings: multimodal chatbot and the ScienceQA dataset, respectively.
+We train all models with 8$\times$ A100s, following Vicuna's hyperparameters~\cite{vicuna}. We pre-train our model on the filtered CC-595K subset for 1 epoch with a learning rate of 2e-3 and a batch size of 128, and fine-tune on the proposed LLaVA-Instruct-158K dataset for 3 epochs, with a learning rate of 2e-5 and a batch size of 32.  See Appendix for more training details.
+
+\subsection{Multimodal Chatbot}
+
+We developed a chatbot demo to show the image understanding and conversation abilities of \shortname{}, and to study how well \shortname{} is able to digest visual inputs and exhibit instruction-following capabilities.
+%
+We first use the examples in the original GPT-4 paper~\cite{gpt4}, shown in Table~\ref{tab:visual_example_ironing} (more examples in Appendix), that require in-depth image understanding. For comparisons, we quote the prompt and response of the multimodal GPT-4 from their paper, and query BLIP-2 and OpenFlamingo model checkpoints to get their response.
+
+Surprisingly, although \shortname{} is trained with a small multimodal instruction-following dataset ($\sim$80K unique images), it demonstrates quite similar reasoning results with multimodal GPT-4 on these examples. Note that while these images are out-of-domain for \shortname{}, \shortname{} is still able to understand the scenes and follow the question instruction to provide a reasonable response. In contrast, BLIP-2 and OpenFlamingo focus on describing the image, instead of following the user instruction to answer in an appropriate manner.
+
+\paragraph{Quantitative Evaluation.}
+To gain a systematic understanding of the performance of \shortname{}, we propose a quantitative metric to measure the model's instruction-following capability on multimodal data. Inspired by \cite{vicuna}, we leverage GPT-4 to measure the quality of generated responses.
+Specifically, we create triplets consisting of image, ground-truth textual descriptions, and question. The candidate models (\eg \shortname{}) predict the answers based on the question and the image.
+To provide an \emph{approximate theoretical upper bound}, we create a reference prediction based on the question and the \emph{ground-truth} textual descriptions, using the text-only GPT-4.
+After obtaining the responses from both models, we feed the question, visual information (in the format of textual descriptions), and the generated responses from both assistants, to the judge (\ie text-only GPT-4).  It evaluates the helpfulness, relevance, accuracy, and level of detail of the responses from the assistants, and gives an overall score on a scale of 1 to 10, where a higher score indicates better overall performance.  It is also asked to provide a comprehensive explanation for the evaluation, for us to better understand the models.
+We report relative scores {\it w.r.t.} the text-only GPT-4 model that uses the textural ground truth description as visual input.
+We create two benchmarks to evaluate the model's performance.
+
+
+\begin{table}[t!]
+\centering
+\scalebox{0.87}{
+\begin{tabular}{l|llll}
+\toprule
+& Conversation & Detail description & Complex reasoning & \textbf{All} \\
+\midrule
+Full data & 83.1 & 75.3 & 96.5 & 85.1 \\
+Detail + Complex & 81.5 \textcolor{red}{\tiny (-1.6)} & 73.3 \textcolor{red}{\tiny (-2.0)} & 90.8 \textcolor{red}{\tiny (-5.7)} & 81.9 \textcolor{red}{\tiny (-3.2)}\\
+Conv + 5\% Detail + 10\% Complex & 81.0 \textcolor{red}{\tiny (-2.1)}  & 68.4 \textcolor{red}{\tiny (-7.1)}  & 91.5 \textcolor{red}{\tiny (-5.0)}  & 80.5  \textcolor{red}{\tiny (-4.4)}  \\
+Conversation & 76.5  \textcolor{red}{\tiny (-6.6)} & 59.8 \textcolor{red}{\tiny (-16.2)} & 84.9 \textcolor{red}{\tiny (-12.4)} & 73.8  \textcolor{red}{\tiny (-11.3)} \\
+No Instruction Tuning & 22.0  \textcolor{red}{\tiny (-61.1)}  & 24.0 \textcolor{red}{\tiny (-51.3)}  & 18.5  \textcolor{red}{\tiny (-78.0)}  & 21.5  \textcolor{red}{\tiny (-63.6)}  \\
+\bottomrule
+\end{tabular}
+}
+\vspace{1mm}
+\caption{Ablation on \benchcoco{} with different training data. We report relative scores {\it w.r.t.} a text-only GPT-4 model that uses ground truth image captions and bounding boxes as visual input.  We prompt GPT-4 with the answers from our model outputs and the answers by GPT-4 (text-only), and let it compare between both responses and give a rating with an explanation.}
+\vspace{-3mm}
+\label{tab:results}
+\end{table}
+
+
+\begin{table}[t!]
+\centering
+\scalebox{0.87}{
+\begin{tabular}{l|llll}
+\toprule
+& Conversation & Detail description & Complex reasoning & All \\
+\midrule
+OpenFlamingo~\cite{anas_awadalla_2023_7733589} & 19.3 $\pm$ 0.5 & 19.0 $\pm$ 0.5 & 19.1 $\pm$ 0.7 & 19.1 $\pm$ 0.4 \\
+BLIP-2~\cite{li2023blip} & 54.6 $\pm$ 1.4 & 29.1 $\pm$ 1.2 & 32.9 $\pm$ 0.7 & 38.1 $\pm$ 1.0 \\
+\shortname{} & 57.3 $\pm$ 1.9 & 52.5 $\pm$ 6.3 & 81.7 $\pm$ 1.8 & 67.3 $\pm$ 2.0 \\
+\shortname{}$^\dagger$ & 58.8 $\pm$ 0.6 & 49.2 $\pm$ 0.8 & 81.4 $\pm$ 0.3 & 66.7 $\pm$ 0.3 \\
+\bottomrule
+\end{tabular}
+}
+\vspace{1mm}
+\caption{Instruction-following capability comparison using relative scores on \benchwild{}. The results are reported in the format of \emph{mean} $\pm$ \emph{std}. For the first three rows, we report three inference runs. \shortname{} performs significantly better than others.  $^\dagger$ For a given set of \shortname{} decoding sequences, we evaluate by querying GPT-4 three times; GPT-4 gives a consistent evaluation.}
+\vspace{-6mm}
+\label{tab:results_wild}
+\end{table}
+
+\paragraph{\benchcoco{}.}
+We randomly select 30 images from COCO-Val-2014, and for each image, we generate three types of questions (conversation, detailed description, complex reasoning) using the proposed data generation pipeline in Sec.~\ref{sec:visual_instruc_data}, totaling 90 questions. This benchmark studies the model's alignment behavior and capabilities with consistent visual inputs.
+We vary the training datasets to study the effectiveness of different types of instruction-following data, and show the results in Table~\ref{tab:results}.  First, with instruction tuning, the model's ability of following user instructions improves significantly by over 50 points.  Second, adding a small amount of detailed description and complex reasoning questions contributes to a considerable improvement of the model's overall capability by 7 points. Furthermore, it also improves the model's performance on conversational questions, suggesting that improvements in reasoning capabilities complement conversational abilities.  Finally, we show that having all three types of data yields the best performance at 85.1\%.
+
+
+\begin{table}
+  \begin{minipage}{0.99\textwidth}
+\centering  
+\vspace{-4mm}
+\scalebox{0.88}{
+\begin{tabular}{l p{5.4cm} p{7.1cm} }
+\toprule
+ \multicolumn{3}{l}{\bf Challenging examples from \benchwild{}:}  \\
+\midrule
+&  \includegraphics[height=4.5cm]{figures/sample_bench_ramen.jpg} &  \includegraphics[height=4.5cm]{figures/sample_bench_fridge.jpg} \\
+& {ICHIRAN Ramen~[\href{https://media-cdn.tripadvisor.com/media/photo-p/12/67/49/e2/photo7jpg.jpg}{source}]} & {Filled fridge~[\href{https://static01.nyt.com/images/2020/01/23/smarter-living/23help/00wc-fridge-superJumbo.jpg?quality=75&auto=webp}{source}]}
+\\ \midrule
+Annotation & A close-up photo of a meal at {\color{blue} ICHIRAN}. The chashu ramen bowl with a spoon is placed in the center. The ramen is seasoned with {\color{brown} chili sauce}, {\color{brown} chopped scallions}, and served with {\color{brown} two pieces of chashu}. Chopsticks are placed to the right of the bowl, still in their paper wrap, not yet opened. The ramen is also served with nori on the left. On top, from left to right, the following sides are served: a bowl of {\color{brown} orange spice} (possibly garlic sauce), a plate of {\color{brown} smoke-flavored stewed pork with chopped scallions}, and a cup of {\color{brown} matcha green tea}. & An open refrigerator filled with a variety of food items. In the left part of the compartment, towards the front, there is {\color{brown}a plastic box of strawberries} with a small bag of baby carrots on top. Towards the back, there is a stack of sauce containers. In the middle part of the compartment, towards the front, there is a green plastic box, and there is an unidentified plastic bag placed on it. Towards the back, there is a carton of milk. In the right part of the compartment, towards the front, there is a box of blueberries with three yogurts stacked on top. The large bottle of yogurt is {\color{blue} Fage non-fat yogurt}, and {\color{brown} one of the smaller cups is Fage blueberry yogurt}. The brand and flavor of the other smaller cup are unknown. Towards the back, there is a container with an unknown content.
+\\ \midrule
+Question 1 & What's the name of the restaurant? & What is the brand of the blueberry-flavored yogurt?
+\\ \midrule
+Question 2 & Describe this photo in detail. & Is there strawberry-flavored yogurt in the fridge?
+\\ \bottomrule
+\end{tabular}
+}
+\vspace{1mm}
+\captionof{table}{Challenging examples from \benchwild{}, we provide extremely-detailed annotation for each image for an accurate evaluation.  Some questions require the model to extract details from high resolution image and to have a broad knowledge coverage.}
+\vspace{-5mm}
+\label{tab:example_bench}  
+  \end{minipage}
+\end{table}
+
+\paragraph{\benchwild{}.}
+To evaluate the model's capability in more challenging tasks and generalizability to novel domains, we collect a diverse set of 24 images with 60 questions in total, including indoor and outdoor scenes, memes, paintings, sketches, \etc, and associate each image with a highly-detailed and manually-curated description and a proper selection of questions.
+We compare \shortname{}, BLIP, and OpenFlamingo in Table~\ref{tab:results_wild}. Thanks to visual instruction tuning, \shortname{} achieves significantly better performance compared with BLIP-2 (+29\%) and OpenFlamingo (+48\%).
+Compared to the text-only GPT-4 that has access to ground-truth labels, \shortname{} achieves an impressive 81.7\% performance on complex reasoning questions, with an overall score of 67.3\%.
+
+\paragraph{Limitations.}
+This \benchwild{} is designed to be challenging and to reveal a model's weaknesses.  We provide two examples with associated captions and questions in Table~\ref{tab:example_bench}.
+% It takes around 10 minutes for the human annotator to finish the caption of this image, with the access to the Internet.
+For the ramen example (left), to correctly answer the name of the restaurant, it requires the model to have a large knowledge coverage and multilingual understanding capability; to correctly describe the side dishes, the model may need to retrieve relevant multimodal information from Internet.
+For the fridge example (right), perceiving the correct brand of the yogurt requires the model to process high resolution images and possess extensive knowledge coverage. We also observed an interesting failure of \shortname{}, as it responds with \emph{yes} when asked if strawberry-flavored yogurt is present, even though the fridge contains only yogurt \emph{and} strawberries. This indicates that, at times, \shortname{} perceives the image as a ``bag of patches'', failing to grasp the complex semantics within the image.
+We hope \shortname{} serves as a solid baseline on the benchmarks, on which our findings can inspire future work in developing more capable LMMs.
+
+
+
+\subsection{ScienceQA}
+
+
+ScienceQA~\cite{lu2022learn} contains 21k multimodal
+multiple choice questions with rich domain diversity across
+3 subjects, 26 topics, 127 categories, and 379 skills. The
+benchmark dataset is split into training, validation, and test splits with 12726, 4241, and 4241 examples, respectively. We consider two representative methods, including GPT-3.5 model (\ProgSty{text-davinci-002}) with and without chain-of-thought (CoT), LLaMA-Adapter~\citep{zhang2023llama}, as well as multimodal chain-of-thought (MM-CoT)~\cite{zhang2023multimodal},  which is the current SoTA method on this dataset. For more baseline numbers, please see~\cite{lu2022learn}.
+
+The results are reported in Table~\ref{tab:scienceqa_model_performance}.
+For \shortname{}, we use the visual features before the last layer, ask the model to first predict reasons and then the answer, and train it for 12 epochs. It yields 90.92\% accuracy, which is quite close to the SoTA 91.68\%.
+To explore the limit of LLMs, we also prompt GPT-4 using 2-shot in-context-learning and achieve 82.69\% accuracy, which is a 7.52\% absolute gain compared with 75.17\% from GPT-3.5. For a substantial number of questions, we note that GPT-4 fails simply because it reports that there is insufficient context such as images or plots. We consider two schemes to combine the outcomes from our model and GPT-4. 
+$(i)$ {\it A GPT-4 complement}. Whenever GPT-4 fails to provide answers, we use the prediction from our method. This schemes yields 90.97\% accuracy, which is almost the same as applying our method alone.
+$(ii)$ {\it GPT-4 as the judge}. Whenever GPT-4 and \shortname{}  produce different answers, we prompt GPT-4 again, asking it to provide its own final answer based on the question and two outcomes. The spirit is similar with CoT, but with the external knowledge from the other model. Surprisingly, this scheme is able to provide consistent improvement over all question classes, and achieves a new SoTA accuracy of 92.53\%. Interestingly, the text-only GPT-4, which cannot process images, improves the overall performance of the model on questions that have an image as context. This is because some of these questions do not actually require the image context for a correct answer. The GPT-4 judge can identify such cases and correct some of the errors that \shortname{} makes. See the example in Appendix. To the best of our knowledge, this is the first time that GPT-4 is used for model ensembling. We hope this finding can encourage future research to explore more effective methods to leverage LLMs for model ensembling.
+
+\begin{table}[t]  
+\centering  
+\scalebox{0.87}{
+\begin{tabular}{l|ccc|ccc|cc|c}  
+\toprule
+\multirow{2}{*}{Method}    & \multicolumn{3}{c|}{Subject} & \multicolumn{3}{c|}{Context Modality} & \multicolumn{2}{c|}{Grade} &  \multirow{2}{*}{Average} \\
+     & NAT   & SOC   & LAN   & TXT   & IMG   & NO    & G1-6  & G7-12 &    \\ 
+    \midrule
+  \multicolumn{10}{l}{\it Representative \& SoTA methods with numbers reported in the literature } \\   
+ Human~\cite{lu2022learn} &  90.23 & 84.97 & 87.48 & 89.60 & 87.50 & 88.10 & 91.59 & 82.42 & 88.40 \\
+ GPT-3.5~\cite{lu2022learn}  &  74.64 & 69.74 & 76.00 & 74.44 & 67.28 & 77.42 & 76.80 & 68.89 & 73.97 \\
+ GPT-3.5 w/ CoT~\cite{lu2022learn}   & 75.44 & 70.87 & 78.09 & 74.68 & 67.43 & 79.93 & 78.23 & 69.68 & 75.17 \\
+LLaMA-Adapter~\citep{zhang2023llama} & 84.37 &  88.30  &  84.36  & 83.72 &  80.32 &  86.90 &  85.83 &  84.05 & 85.19 \\
+MM-CoT$_{Base}$~\cite{zhang2023multimodal} &  87.52 & 77.17 & 85.82 & 87.88 & 82.90 & 86.83 & 84.65 & 85.37 & 84.91 \\
+MM-CoT$_{Large}$~\cite{zhang2023multimodal} & 95.91 & 82.00 & 90.82 & 95.26 & 88.80 & 92.89 & 92.44 & 90.31 & 91.68 \\
+     \midrule
+ \multicolumn{10}{l}{\it Results with our own experiment runs } \\
+ \rowcolor{Gray}   
+GPT-4$^\dagger$ & 84.06 & 73.45 & 87.36 & 81.87 & 70.75 & 90.73 & 84.69 & 79.10 & 82.69 \\
+ \rowcolor{Gray}
+ \shortname{}      & 90.36 & 95.95 & 88.00 & 89.49 & 88.00 & 90.66 & 90.93 & 90.90 & 90.92 \\
+ \rowcolor{Gray}
+ \shortname{}+GPT-4$^\dagger$ (complement) & 90.36 & 95.50 & 88.55 & 89.05 & 87.80 & 91.08 & 92.22 & 88.73 & 90.97 \\
+ \rowcolor{Gray}
+ \shortname{}+GPT-4$^\dagger$  (judge) & 91.56 & 96.74 & 91.09 & 90.62 & 88.99 & 93.52 & 92.73 & 92.16 & {\bf 92.53} \\
+\bottomrule
+\end{tabular}
+}
+\vspace{1mm}
+\caption{Accuracy (\%) on Science QA dataset.  Question categories: NAT = natural science, SOC = social science, LAN = language
+science, TXT = text context, IMG = image context, NO = no context, G1-6 = grades 1-6, G7-12 = grades 7-12. $^\dagger$Text-only GPT-4, our eval.
+Our novel model ensembling with the text-only GPT-4 consistently improves the model's performance under all categories, setting the new SoTA performance.
+% \yj{briefly say what to notice.}
+\vspace{-5mm}
+}  
+\label{tab:scienceqa_model_performance}  
+\end{table}  
+
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+  \begin{minipage}{0.5\textwidth}
+\centering  
+\vspace{-4mm}
+\scalebox{0.88}{
+\begin{tabular}{l|l l}
+\toprule
+Visual features & Before & Last \\
+\midrule
+Best variant & 90.92 &  89.96 \textcolor{red}{\tiny (-0.96)}  \\
+Predict answer first & - &  89.77 \textcolor{red}{\tiny (-1.15)} \\
+Training from scratch & 85.81 \textcolor{red}{\tiny (-5.11)} & - \\
+7B model size & 89.84 \textcolor{red}{\tiny (-1.08)} & - \\
+\bottomrule
+\end{tabular}
+}
+\vspace{2mm}
+\captionof{table}{Design choice ablations (\%). The difference with the best variant is reported in red text.}  
+\label{tab:scienceqa_ablation}  
+  \end{minipage}
+\end{wrapfigure}
+
+
+
+\paragraph{Ablations.} We ablate several design choices on ScienceQA in Table~\ref{tab:scienceqa_ablation}.
+$(i)$ {\it Visual features}. We tried using the last layer feature from CLIP vision encoder, which yields 89.96\% and is 0.96\% lower than the feature before the last layer. We hypothesize that this is because CLIP's last layer features may focus more on global and abstract image properties compared to the layer before it, which can focus more on localized properties that are useful for understanding specific image details.  
+$(ii)$ {\it Chain-of-thought}. To decide the order between the answer and reasoning process in the model prediction, we run both variants and observe that answer-first reports the best number 89.77\% accuracy in 12 epochs, while reasoning-first can quickly reach 89.77\% accuracy in 6 epochs, but no further improvement with more training. Training the model for 24 epochs does not improve the performance. We conclude that CoT-like reasoning-first strategy can largely improve convergence, but contributes relatively little to the final performance.
+$(iii)$ {\it Pre-training}. We skip pre-training and directly train on Science QA from scratch -- performance drops to 85.81\% accuracy. The 5.11\% absolute degradation indicates the importance of our pre-training stage, in aligning multimodal features while preserving the vast pre-trained knowledge. 
+$(iv)$ {\it Model size}. We keep all configurations the same as our best 13B model, and train a 7B model.  This yields 89.84\% accuracy, which is 1.08\% lower than 90.92\%, demonstrating the importance of model scale.
+

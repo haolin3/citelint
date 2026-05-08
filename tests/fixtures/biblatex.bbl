@@ -1,0 +1,23 @@
+\begin{refsection}[0]
+  \entry{vaswani2017attention}{inproceedings}{}
+    \name{author}{8}{}{%
+      {{hash=abc123}{}{family={Vaswani},familyi={V\bibinitperiod},given={Ashish},giveni={A\bibinitperiod}}}%
+      {{hash=def456}{}{family={Shazeer},familyi={S\bibinitperiod},given={Noam},giveni={N\bibinitperiod}}}%
+    }
+    \field{labelalpha}{VS17}
+    \field{sortinit}{V}
+    \field{title}{Attention is All You Need}
+    \field{booktitle}{Advances in Neural Information Processing Systems}
+    \field{year}{2017}
+  \endentry
+
+  \entry{devlin2019bert}{inproceedings}{}
+    \name{author}{4}{}{%
+      {{hash=ghi789}{}{family={Devlin},familyi={D\bibinitperiod},given={Jacob},giveni={J\bibinitperiod}}}%
+      {{hash=jkl012}{}{family={Chang},familyi={C\bibinitperiod},given={Ming-Wei},giveni={M\bibinitperiod}}}%
+    }
+    \field{title}{BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding}
+    \field{booktitle}{Proceedings of NAACL-HLT}
+    \field{year}{2019}
+  \endentry
+\end{refsection}

@@ -1,0 +1,35 @@
+name: Bug Report
+description: Something isn't working correctly
+labels: [bug]
+body:
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Describe the bug. Include the error message if there is one.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: LaTeX template
+      description: Which conference/journal template are you using? (e.g., NeurIPS, ACM, IEEE, LNCS)
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps to reproduce the issue.
+      value: |
+        1. `citelint /path/to/paper`
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Environment
+      description: OS, Python version, citelint version
+      value: |
+        - OS:
+        - Python:
+        - citelint version:
+    validations:
+      required: true

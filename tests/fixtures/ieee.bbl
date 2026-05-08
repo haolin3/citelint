@@ -1,0 +1,13 @@
+\begin{thebibliography}{10}
+
+\bibitem{vaswani2017attention}
+A.~Vaswani, N.~Shazeer, N.~Parmar, J.~Uszkoreit, L.~Jones, A.~N. Gomez,
+  L.~Kaiser, and I.~Polosukhin, ``Attention is all you need,'' in
+  \emph{Advances in Neural Information Processing Systems}, 2017.
+
+\bibitem{devlin2019bert}
+J.~Devlin, M.-W. Chang, K.~Lee, and K.~Toutanova, ``{BERT}: Pre-training of
+  deep bidirectional transformers for language understanding,'' in \emph{Proc.
+  NAACL-HLT}, 2019.
+
+\end{thebibliography}

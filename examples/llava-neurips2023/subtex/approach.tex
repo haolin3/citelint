@@ -1,0 +1,192 @@
+\section{GPT-assisted Visual Instruction Data Generation}
+\label{sec:visual_instruc_data}
+
+The community has witnessed a surge in the amount of public multimodal data such as image-text pairs, ranging from CC~\cite{changpinyo2021conceptual} to LAION~\cite{schuhmann2022laion}. However, when it comes to multimodal instruction-following data, the available amount is limited, partially because the process for creating such data is time-consuming and less well-defined when human crowd-scouring is considered. Inspired by the success of recent GPT models in text-annotation tasks~\cite{gilardi2023chatgpt}, we propose to leverage ChatGPT/GPT-4 for multimodal instruction-following data collection, based on the widely existing image-pair data.
+
+
+For an image $\Xmat_{\texttt{v}}$ and its associated caption $\Xmat_{\texttt{c}}$, it is natural to create a set of questions $\Xmat_{\texttt{q}}$ with the intent to instruct the assistant to describe the image content. We prompt GPT-4 to curate such a list of questions (see details in Appendix).
+Therefore, a simple way to expand an image-text pair to its instruction-following version is
+$
+\texttt{Human}: \Xmat_{\texttt{q}} ~\Xmat_{\texttt{v}}     \texttt{<STOP>}~
+    \texttt{Assistant}: 
+    \Xmat_{\texttt{c} } 
+     \texttt{<STOP>}
+$. 
+Though cheap to construct, this simple expanded version lacks diversity and in-depth reasoning in both the instructions and responses.
+
+\begin{table*}[t!]\centering
+\begin{minipage}{1.0\columnwidth}\vspace{0mm}    \centering
+\begin{tcolorbox} 
+    \centering
+   
+      \footnotesize
+    \begin{tabular}{p{0.97\columnwidth} c}
+   \VarSty{ {\bf Context type 1: Captions} } &\\
+A group of people standing outside of a black vehicle with various luggage. 
+& \hspace{-3.2cm} \multirow{5}{*}{ \includegraphics[height=2.0cm]{figures/car_bbox.jpg} }
+\\
+Luggage surrounds a vehicle in an underground parking area & \\
+People try to fit all of their luggage in an SUV.& \\
+The sport utility vehicle is parked in the public garage, being packed for a trip &\\
+Some people with luggage near a van that is transporting it.& \\
+
+\VarSty{ {\bf Context type 2: Boxes} } & \\
+person: [0.681, 0.242, 0.774, 0.694],
+backpack: [0.384, 0.696, 0.485, 0.914],
+suitcase: ...<omitted> & \\
+
+    \hrulefill & \\
+   \VarSty{ {\bf Response type 1: conversation} } & \\
+Question: What type of vehicle is featured in the image?  &\\
+Answer: The image features a black sport utility vehicle (SUV) ...<omitted> & \\
+   \VarSty{ {\bf Response type 2: detailed description} }& \\
+The image is an underground parking area with a black sport utility vehicle (SUV) parked. There are three people in the scene, with one person standing closer to the left side of the vehicle, another person in the middle, and the third person on the right side. They are all working together to pack their luggage into the SUV for a trip. ...<omitted>& \\
+   \VarSty{ {\bf Response type 3: complex reasoning} }& \\
+Question: What challenges do these people face? & \\
+Answer: In the image, a group of people is standing outside a black SUV in a parking area, surrounded by various pieces of luggage, including suitcases and backpacks. They are facing the challenge of fitting all their luggage into the black SUV. There are multiple suitcases and backpacks to be packed, which suggests that the group has a significant amount of belongings ...<omitted>&
+    \end{tabular}
+\end{tcolorbox}
+\vspace{-2mm}
+\caption{One example to illustrate the instruction-following data. The top block shows the contexts such as captions and boxes used to prompt GPT, and the bottom block shows the three types of responses. Note that the visual image is not used to prompt GPT, we only show it here as a reference.}
+    \label{tab:full_example_car_bbox}
+\end{minipage}
+\end{table*}
+
+
+To mitigate this issue, we leverage language-only GPT-4 or ChatGPT as the strong teacher (both accept only text as input), to create instruction-following data involving visual content.
+Specifically, in order to encode an image into its visual features to prompt a text-only GPT, we use two types of symbolic representations: 
+$(i)$ {\it Captions} typically describe the visual scene from various perspectives; 
+$(ii)$ {\it Bounding boxes} usually localize the objects in the scene, and each box encodes the object concept and its spatial location. One example is shown in the top block of Table~\ref{tab:full_example_car_bbox}.
+
+This symbolic representation allows us to encode the image as an LLM-recognizable sequence. We use COCO images~\cite{lin2014microsoft} and generate three types of instruction-following data. 
+One example per type is shown in the bottom block of Table~\ref{tab:full_example_car_bbox}.
+For each type, we first manually design a few examples. They are the only human annotations we have during data collection, and are used as seed examples in in-context-learning to query GPT-4.
+
+\begin{itemize}[leftmargin=7.5mm]
+\setlength{\itemsep}{2pt}
+\item 
+{\it Conversation}. We design a conversation between the assistant and a person asking questions about this photo. The answers are in a tone as if the assistant is seeing the image and answering the question. A diverse set of questions are asked about the visual content of the image, including the object types, counting
+the objects, object actions, object locations, relative positions between objects. Only questions that have definite answers are considered. Please see Appendix for the detailed prompt.
+
+\item
+{\it Detailed description}. To include a rich and comprehensive description for an image, we create a list of questions with such an intent. We prompt GPT-4 then curate the list (see detailed prompts and curation process in Appendix). For each image, we randomly sample one question from the list to ask GPT-4 to generate the detailed description. 
+
+\item
+{\it Complex reasoning}. The above two types focus on the visual content itself, based on which we further create in-depth reasoning questions. The answers typically require a step-by-step reasoning process by following rigorous logic. 
+\end{itemize}
+
+We collect 158K unique language-image instruction-following samples in total, including 58K in conversations, 23K in detailed description, and 77k in complex reasoning, respectively. We ablated the use of ChatGPT and GPT-4 in our early experiments, and found that GPT-4 consistently provides higher quality instruction-following data, such as spatial reasoning. 
+
+
+
+
+\section{Visual Instruction Tuning}
+
+\subsection{Architecture}  
+
+
+
+The primary goal is to effectively leverage the capabilities of both the pre-trained LLM and visual model. The network archtecture is illustrated in Figure~\ref{fig:llava_arch}. We choose Vicuna~\cite{vicuna} as our LLM  $f_{\phiv}(\cdot)$ parameterized by $\phiv$, as it has the best instruction following capabilities in language tasks among publicly available checkpoints~\cite{alpaca,vicuna,peng2023instruction}.
+
+\begin{figure}[h!]
+\centering  
+\vspace{-4mm}
+\includegraphics[height=3.5cm]{figures/llava_arch.pdf}
+\vspace{-1mm}
+\caption{\shortname{} network architecture.}
+\label{fig:llava_arch}  
+  \vspace{-3mm}
+\end{figure}
+
+
+
+For an input image $\Xmat_{\texttt{v}}$, we consider the pre-trained CLIP visual encoder ViT-L/14~\cite{radford2021learning}, which provides the visual feature $\Zmat_{\texttt{v}} = g(\Xmat_{\texttt{v}})$. The grid features before and after the last Transformer layer are considered in our experiments.
+We consider a simple linear layer to connect image features into the word embedding space. Specifically, we apply a trainable projection
+matrix $\Wmat$ to convert  $\Zmat_{\texttt{v}}$
+into language embedding tokens $\Hmat_{\texttt{v}}$, which have the same dimensionality as the word embedding space in the language model:
+%to convert the feature dimension of $\Zmat_{\texttt{v}}$
+%into that of language embedding tokens $\Hmat_{\texttt{q}}$, \ie the same dimension of word embedding space in the language model:
+%
+\begin{equation}
+    \Hmat_{\texttt{v}} = \Wmat \cdot \Zmat_{\texttt{v}},~ \text{with}~~
+   \Zmat_{\texttt{v}} = g(\Xmat_{\texttt{v}})
+    \label{eq:image_encoding}
+\end{equation}
+Thus, we have a sequence of visual tokens $\Hmat_{\texttt{v}}$.
+Note that our simple projection scheme is lightweight, which allows us to iterate data centric experiments quickly. More sophisticated schemes to connect the image and language representations can also be considered, such as gated cross-attention in Flamingo~\cite{alayrac2022flamingo} and Q-former in BLIP-2~\cite{li2023blip}. We leave exploring possibly more effective and sophisticated architecture designs for \shortname{} as future work.
+
+
+\subsection{Training}
+
+  
+
+
+For each image $\Xmat_{\texttt{v}}$, we generate multi-turn conversation data 
+$(\Xmat_{\texttt{q}}^1, \Xmat_{\texttt{a}}^1, \cdots, \Xmat_{\texttt{q}}^T, \Xmat_{\texttt{a}}^T )$, where $T$ is the total number of turns. 
+We organize them as a sequence, by treating all answers as the assistant's response, and the instruction $\Xmat_{\texttt{instruct}}^t $ at the $t$-th turn as:  
+\begin{align} \label{eq:organize_data_turn_rule}
+ \Xmat_{\texttt{instruct}}^t = 
+\left\{\begin{matrix}
+& \text{Randomly choose}~~
+[\Xmat_{\texttt{q}}^1, \Xmat_{\texttt{v}}] ~~\text{or}~~ [ \Xmat_{\texttt{v}}, \Xmat_{\texttt{q}}^1] ,  ~~~\text{the first turn}~t=1 \\ 
+& \Xmat_{\texttt{q}}^t, \hspace{45mm} \text{the remaining turns}~t>1
+\end{matrix}\right.
+\end{align}
+
+This leads to the unified format for the multimodal instruction-following sequence illustrated in Table~\ref{tab:input_sequence}.  We perform instruction-tuning of the LLM on the prediction tokens, using its original auto-regressive training objective.   
+
+
+\begin{table*}[t!]\centering
+\begin{minipage}{0.99\columnwidth}\vspace{0mm}    \centering
+\begin{tcolorbox} 
+    \raggedright
+    \small
+     \hspace{-6mm}
+
+    $\Xmat_{\texttt{system-message}}$  \PredSty{\texttt{<STOP>}} \\
+    $\texttt{Human}: \Xmat_{\texttt{instruct}}^1$  \PredSty{\texttt{<STOP>}}
+    $\texttt{Assistant}$: 
+    \PredSty{$\Xmat_{\texttt{a} }^1$} 
+    \PredSty{\texttt{<STOP>}} \\
+    $\texttt{Human}: \Xmat_{\texttt{instruct}}^2$  \PredSty{\texttt{<STOP>}}
+    $\texttt{Assistant}$: 
+    \PredSty{$\Xmat_{\texttt{a} }^2$} 
+    \PredSty{\texttt{<STOP>}} $\cdots$ \\  
+
+\end{tcolorbox}
+    
+\vspace{-2mm}
+\caption{The input sequence used to train the model. Only two conversation turns are illustrated here; in practice, the number of turns varies based on the instruction-following data.  In our current implementation, we follow Vicuna-v0~\cite{vicuna} to set the system message $\Xmat_{\texttt{system-message}}$ and we set \texttt{<STOP>} = \texttt{\#\#\#}. The model is trained to predict the assistant answers and where to stop, and thus only {\color{mygreen} green sequence/tokens} are used to compute the loss in the auto-regressive model.  }
+    \label{tab:input_sequence}
+\vspace{-5mm}
+\end{minipage}
+\end{table*}
+
+Specifically, for a sequence of length $L$, we compute the probability of the target answers $\Xmat_{\texttt{a}}$ by:
+%
+\begin{equation}
+    p( \Xmat_{\texttt{a}} |  \Xmat_{\texttt{v}}, \Xmat_{\texttt{instruct}}) =
+    \prod_{i=1}^{L} p_{\thetav} (  {\color{mygreen} \xv_i}
+| \Xmat_{\texttt{v}}, \Xmat_{\texttt{instruct}, <i}, \Xmat_{\texttt{a}, <i}),
+    \label{eq:auto_regressive}
+\end{equation}
+where $\thetav$ is the trainable parameters, $\Xmat_{\texttt{instruct}, <i}$ and $\Xmat_{\texttt{a}, <i}$ are the instruction and answer tokens in all turns before the current prediction token ${\color{mygreen} \xv_i}$, respectively. Please see Table~\ref{tab:input_sequence} for an illustration of the prediction tokens. For the conditionals in~\eqref{eq:auto_regressive}, we explicitly add $\Xmat_{\texttt{v}}$ to emphasize the fact that the image is grounded for all answers, and we omit $\Xmat_{\texttt{system-message}}$ and all previous \texttt{<STOP>} for better readability.
+For \shortname{} model training, we consider a two-stage instruction-tuning procedure.
+
+\paragraph{Stage 1: Pre-training for Feature Alignment.} To strike a balance between concept coverage and training efficiency, we filter CC3M to 595K image-text pairs. Please see Appendix for details of the filtering process. These pairs are converted to the instruction-following data using the naive expansion method describe in Section~\ref{sec:visual_instruc_data}.
+Each sample can be treated as a single-turn conversation. To construct the input $\Xmat_{\texttt{instruct}}$ in \eqref{eq:organize_data_turn_rule}, for an image $\Xmat_{\texttt{v}}$, a question $\Xmat_{\texttt{q}}$ is randomly sampled, which is a language instruction to request the assistant to describe the image briefly. The ground-truth prediction answer $\Xmat_{\texttt{a}}$ is the original caption. In training, we keep both the visual encoder and LLM weights frozen, and maximize the likelihood of \eqref{eq:auto_regressive} with trainable parameters $\thetav = \Wmat$ (the projection matrix) only. In this way, the image features $\Hmat_{\texttt{v}} $ can be aligned with the pre-trained LLM word embedding. This stage can be understood as training a compatible visual tokenizer for the frozen LLM.
+  
+\paragraph{Stage 2: Fine-tuning End-to-End.} 
+We always keep the visual encoder weights frozen, and continue to update both the pre-trained weights of the projection layer and LLM in \shortname{}; i.e., the trainable parameters are $\thetav = \{\Wmat, \phiv \}$ in~\eqref{eq:auto_regressive}. We consider two specific use case scenarios:
+
+
+
+
+\begin{itemize}[leftmargin=7.5mm]
+\setlength{\itemsep}{2pt}
+\item 
+{\it Multimodal Chatbot}. We develop a Chatbot by fine-tuning on the 158K language-image instruction-following data in Section~\ref{sec:visual_instruc_data}. Among the three types of responses, conversation is multi-turn while the other two are single-turn. They are uniformly sampled in training.
+\item
+{\it Science QA}. We study our method on the ScienceQA benchmark~\cite{lu2022learn}, the first large-scale multimodal science question dataset that annotates the answers with detailed lectures and explanations. Each question is provided a context in the form of natural language or an image. The assistant provides the reasoning process in natural language and selects the answer among multiple choices. 
+For training in \eqref{eq:organize_data_turn_rule}, we organize the data as a single turn conversation, the question \& context as $\Xmat_{\texttt{instruct}}$, and reasoning \& answer as $\Xmat_{\texttt{a}}$.
+\end{itemize}

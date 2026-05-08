@@ -1,0 +1,27 @@
+\section{Introduction}
+
+Humans interact with the world through many channels such as vision and language, as each individual channel has a unique advantage in representing and communicating certain concepts, and thus facilitates a better understanding of the world. One of the core aspirations in artificial intelligence is to develop a general-purpose assistant that can effectively follow multi-modal  vision-and-language instructions, aligned with human intent to complete various real-world tasks in the wild~\cite{askell2021general,li2022elevater,li2023multimodal}.
+
+To this end, the community has witnessed an emergent interest in developing language-augmented foundation vision models~\cite{li2022elevater,gan2022vision}, with strong capabilities in open-world visual understanding such as classification~\citep{radford2021learning,openclip,yuan2021florence,yang2022unicl,pham2021combined}, detection~\cite{li2022grounded,zhong2022regionclip,liu2023grounding}, segmentation~\citep{li2022language,zou2022generalized,zhang2023simple} and captioning~\citep{wang2022git,li2023blip}, as well as visual generation and editing~\citep{DALLE2,LDM,PARTI,MAKEASCENE,Imagen,li2023gligen}. We refer readers to the {\it Computer Vision in the Wild} reading list for a more up-to-date literature compilation~\citep{cvinw}. In this line of work, each task is solved independently by one single large vision model, with the task instruction implicitly considered in the model design. Further, language is only utilized to describe the image content. While this allows language to play an important role in mapping visual signals to language semantics---a common channel for human communication, it leads to models that usually have a fixed interface with limited interactivity and adaptability to the user's instructions.
+
+Large language models (LLM), on the other hand, have shown that language can play a wider role: a universal interface for a general-purpose assistant, where various task instructions can be explicitly represented in language and guide the end-to-end trained neural assistant to switch to the task of interest to solve it. For example, the recent success of ChatGPT~\citep{chatgpt} and GPT-4~\citep{gpt4} have demonstrated the power of aligned LLMs in following human instructions, and have stimulated tremendous interest in developing open-source LLMs. Among them, LLaMA~\citep{touvron2023llama} is an open-source LLM that matches the performance of GPT-3. Alpaca~\citep{alpaca}, Vicuna~\citep{vicuna}, GPT-4-LLM~\citep{peng2023instruction} utilize various machine-generated high-quality instruction-following samples to improve the LLM's alignment ability, reporting impressive  performance compared with proprietary LLMs. Importantly, this line of work is \emph{text-only}.  
+
+In this paper, we present {\it visual instruction-tuning}, the first attempt to extend instruction-tuning to the language-image multimodal space, to pave the way towards building a general-purpose visual assistant. In particular, our paper makes the following contributions:
+
+\begin{itemize}[leftmargin=7.5mm]
+\setlength{\itemsep}{2pt}
+\item 
+{\it Multimodal instruction-following data}. One key challenge is the lack of vision-language instruction-following data. We present a data reformation perspective and pipeline to convert image-text pairs into an appropriate instruction-following format, using ChatGPT/GPT-4.
+
+\item
+{\it Large multimodal models}. We develop a large multimodal model (LMM), by connecting the open-set visual encoder of CLIP~\citep{radford2021learning} with the language decoder Vicuna~\cite{vicuna}, and fine-tuning end-to-end on our generated instructional vision-language data. 
+Our empirical study validates the effectiveness of using generated data for LMM instruction-tuning, and suggests practical tips for building a general-purpose instruction-following visual agent. When ensembled with GPT-4, our approach achieves SoTA on the Science QA~\cite{lu2022learn} multimodal reasoning dataset. 
+
+\item 
+{\it Multimodal instruction-following benchmark}. We present LLaVA-Bench with two challenging benchmarks, with a diverse selection of paired images, instructions and detailed annotations.
+
+\item
+{\it Open-source}. We release the following assets to the public: the generated multimodal instruction data, the codebase, the model checkpoints, and a visual chat demo.
+
+\end{itemize}
+

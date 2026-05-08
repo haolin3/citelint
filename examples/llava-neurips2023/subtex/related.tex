@@ -1,0 +1,18 @@
+\vspace{-2mm}
+\section{Related Work}
+\vspace{-2mm}
+
+\textbf{Multimodal Instruction-following Agents.}
+~In computer vision, existing works that build instruction-following agents can be broadly categorized into two classes: 
+$(i)$ End-to-end trained models, which are separately explored for each specific research topic. For example, the vision-language navigation task~\cite{anderson2018vision,hao2020towards} and Habitat~\cite{szot2021habitat}  require the embodied AI agent to follow natural language instructions and take a sequence of actions to complete goals in visual environments. In the image editing domain, given an input image and a written instruction that tells the agent what to do, InstructPix2Pix~\cite{brooks2022instructpix2pix} edits images by following the human instructions. 
+$(ii)$ A system that coordinates various models via LangChain~\cite{langchain} / LLMs~\cite{chatgpt}, such as
+Visual ChatGPT~\cite{wu2023visual}, X-GPT~\cite{zou2022generalized}, MM-REACT~\cite{yang2023mm}, VisProg~\cite{gupta2022visual}, and ViperGPT~\cite{suris2023vipergpt}. While sharing the same goal in building instruction-following agents, we focus on developing an end-to-end trained language-vision multimodal model for \emph{multiple} tasks.
+
+\textbf{Instruction Tuning.} In the natural language processing (NLP) community, to enable LLMs such as GPT-3~\cite{brown2020language}, T5~\cite{raffel2020exploring}, PaLM~\cite{chowdhery2022palm}, and OPT~\cite{zhang2022opt} to follow natural language instructions 
+and complete real-world tasks, researchers have explored methods for LLM instruction-tuning~\citep{ouyang2022training,wang2022benchmarking,wang2022self}, leading to instruction-tuned counterparts such as InstructGPT~\cite{ouyang2022training}/ChatGPT~\cite{chatgpt}, FLAN-T5~\cite{chung2022scaling}, FLAN-PaLM~\cite{chung2022scaling}, and OPT-IML~\cite{iyer2022opt}, respectively.  
+It turns out that this simple approach can effectively improve the zero- and few-shot generalization abilities of LLMs. It is thus natural to borrow the idea from NLP to computer vision. More broadly, the teacher-student distillation ideas with foundation models have been studied in other topics such as image classification~\cite{faghri2023reinforce}. Flamingo~\cite{alayrac2022flamingo} can be viewed as the GPT-3 moment in the multimodal domain, due to its strong performance on zero-shot task transfer and in-context-learning. Other LMMs trained on image-text pairs include BLIP-2~\cite{li2023blip}, FROMAGe~\cite{koh2023grounding}, and KOSMOS-1~\citep{huang2023language}. 
+PaLM-E~\cite{driess2023palm} is an LMM for embodied AI.
+Based on the recent ``best'' open-source LLM LLaMA, OpenFlamingo~\citep{anas_awadalla_2023_7733589} and LLaMA-Adapter~\citep{zhang2023llama} are open-source efforts that enable LLaMA to use image inputs, paving the way to build open-source multimodal LLMs.
+While these models present promising task transfer generalization performance, they are not explicitly tuned with vision-language instruction data, and their performance in multimodal tasks usually falls short compared to language-only tasks.
+In this paper, we aim to fill this gap and study its effectiveness. Finally, note that visual instruction tuning is different from visual prompt tuning~\cite{jia2022visual}: the former aims to improve the model's instruction-following abilities, while the latter aims to improve the parameter-efficiency in model adaptation. 
+

@@ -1,0 +1,15 @@
+\begin{thebibliography}{10}
+
+\bibitem[Vaswani et~al\mbox{.}(2017)]%
+        {vaswani2017attention}
+\bibfield{author}{\bibinfo{person}{Ashish Vaswani}, \bibinfo{person}{Noam Shazeer}, \bibinfo{person}{Niki Parmar}, \bibinfo{person}{Jakob Uszkoreit}, \bibinfo{person}{Llion Jones}, \bibinfo{person}{Aidan~N Gomez}, \bibinfo{person}{Lukasz Kaiser}, {and} \bibinfo{person}{Illia Polosukhin}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Attention is All You Need}.
+\newblock In \bibinfo{booktitle}{\emph{Advances in Neural Information Processing Systems}}.
+
+\bibitem[Devlin et~al\mbox{.}(2019)]%
+        {devlin2019bert}
+\bibfield{author}{\bibinfo{person}{Jacob Devlin}, \bibinfo{person}{Ming-Wei Chang}, \bibinfo{person}{Kenton Lee}, {and} \bibinfo{person}{Kristina Toutanova}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{{BERT}: Pre-training of Deep Bidirectional Transformers for Language Understanding}.
+\newblock In \bibinfo{booktitle}{\emph{Proceedings of NAACL-HLT}}.
+
+\end{thebibliography}

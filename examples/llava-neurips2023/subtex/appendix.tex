@@ -1,0 +1,514 @@
+
+
+\section{Broader Impact}
+
+The broader impact of \shortname{}, a general-purpose visual assistant, has potential benefits and risks associated with its deployment and release. Some considerations are unique to \shortname{} due to its visual nature, while others share similarities with existing instruction-following LLMs (\eg Alpaca, Vicuna, \etc). As \shortname{} is built upon LLaMA, Vicuna, and CLIP, it inherits some of the issues associated with LLMs and vision encoders. In the following, we outline both the risks and mitigation strategies in place for the release of this model.
+
+\paragraph{Malicious input.}
+To minimize potential misuse and harmful consequences, we employ two precautionary measures for \shortname{}: (1) \emph{OpenAI Filter API} for user input text to prevent harmful or inappropriate text instructions from being processed by the model, and (2) \emph{NSFW Filter} for uploaded user images to detect and block Not Safe For Work (NSFW) content or any other potentially harmful image inputs. 
+
+\paragraph{Hallucination.}
+Similar to LLMs, \shortname{} might generate outputs that aren't grounded in facts or input data. This raises concerns about inferences made, especially in critical applications (\eg medical).
+
+\paragraph{Biases.}
+Bias can be transferred from the base models to \shortname{}, both from the vision encoder (CLIP) and the language decoder (LLaMA/Vicuna). This may lead to biased outcomes or unfair representations of diverse content.
+
+\paragraph{Energy consumption.}
+Though energy consumption is not a primary concern for \shortname{} due to a smaller pretraining dataset (see details in Sec.~\ref{sec:appendix_training_details}), it may become a concern when scaling up the pretraining dataset or increasing the model size, e.g., to a larger LLaMA version like the 65B model.
+
+\paragraph{Evaluation complexities.}
+Assessing the performance of \shortname{} is challenging as it involves both language and visual tasks. Our evaluation benchmark covers several aspects, including accuracy, concept coverage, reasoning ability, and creativity. However, additional aspects need consideration, such as the degree of visual content hallucination and fine-grained understanding of visual content. While text-only GPT-4 based multimodal evaluation is consistent and accurate in our study, its robustness in different situations and capability to evaluate other unexplored aspects are subjects for future work.
+
+Despite these risks, we believe that the benefits of releasing \shortname{} to the research community outweigh the potential harm. It allows for ongoing investigation and improvement of the model and engages the community in developing better mitigation strategies to address these concerns. Moreover, the release of \shortname{} can spur the development of new applications and research directions, ultimately contributing to the progress and responsible deployment of foundation models in vision-language tasks.
+
+\section{More Results}
+
+We present more qualitative results of \shortname{} to analyze its emergent behaviors and observed weaknesses. For more quantitative results of \shortname{} on academic benchmarks, please refer to the improved baselines with visual instruction tuning~\cite{liu2023improvedllava}. In Table~\ref{tab:visual_example_chichken}, \shortname{} demonstrates a similar behavior as GPT-4 in another example from its paper.  Similar to the GPT-4 live demo by OpenAI, \shortname{} is capable of generating the HTML/JS/CSS code for an interactive joke website based on a simplified user input sketch in Fig.~\ref{fig:example_website}, despite a minor error. As shown in Fig.~\ref{fig:example_recipe}, \shortname{} can follow user's instructions in a conversational style and provide detailed responses or creative writings. Furthermore, \shortname{} is able to relate the visual content to the textual knowledge from the pretrained LLM, as demonstrated in Fig.~\ref{fig:example_titanic} and Fig.~\ref{fig:example_mona_lisa}.
+
+One interesting emergent behavior of \shortname{} is that it is able to understand visual contents that are not covered in the training.  For example, in Fig.~\ref{fig:example_elon_musk}, it is able to recognize Elon Musk both in a headshot and in a humorous meme where he is dressed as a doge, even though Elon Musk \emph{never} appears in the training data for either the visual feature alignment or visual instruction tuning stages of \shortname{}.  \shortname{} also demonstrates impressive OCR (optical character recognition) ability in Table~\ref{tab:visual_example_chichken} and Fig.~\ref{fig:example_website}, which is rarely covered in our training data.
+
+We hope these additional results and observations showcase the potential of \shortname{} in various application areas. In future work, it is important to investigate these emergent behaviors more thoroughly and to understand the underlying mechanisms that enable \shortname{} to demonstrate such generalization abilities. This will pave the way towards building better LMMs, including enhancing robustness, reducing biases, and improving the alignment and the scope of the learned vision-language representations.
+
+\begin{table}[h!]
+  \begin{minipage}{0.99\textwidth}
+\centering
+\scalebox{0.88}{
+\begin{tabular}{l p{12.5cm} }
+\toprule
+ \multicolumn{2}{l}{\bf Visual input example, Chicken Nugget Map:}  \\
+\midrule
+&  \includegraphics[height=4.5cm]{figures/chicken_nugget.png} \\
+
+User & Can you explain this meme in detail? \\
+\shortname{} & The meme in the image is a creative and humorous take on food, with a focus on chicken nuggets, as the center of the universe. The meme begins with the phrase "Sometimes I just look at pictures of the Earth from space and I marvel at how beautiful it all is..." The main image features a tray of cooked chicken nuggets, with the chicken pieces positioned to resemble the continents and islands on a world map.
+The meme playfully suggests that the chicken nuggets represent the Earth, and the various locations depicted in the photo are actually chicken nugget versions of different places. The punchline of the meme appears in smaller text at the bottom, reading "I mean, it's not the real Earth, but how beautiful it is all is." This lighthearted and entertaining meme combines food and humor, using the image of chicken nuggets to create a funny and imaginative representation of the world.
+\\
+\midrule
+User & Can you explain this meme? \\
+GPT-4~\cite{gpt4} &  This meme is a joke that combines two unrelated things: pictures of the earth from
+space and chicken nuggets.
+The text of the meme suggests that the image below is a beautiful picture of the
+earth from space. However, the image is actually of chicken nuggets arranged to
+vaguely resemble a map of the world.
+The humor in this meme comes from the unexpected juxtaposition of the text and
+the image. The text sets up an expectation of a majestic image of the earth, but the
+image is actually something mundane and silly.
+\\ \midrule
+User & Can you explain this meme in detail? \\
+BLIP-2 & sometimes i just look at pictures of the earth from space and marvel how beautiful it is
+\\ \midrule
+User & Can you explain this meme in detail? \\
+OpenFlamingo & It's a picture of a chicken nugget on the International Space Station. 
+\\
+\bottomrule
+\end{tabular}
+}
+\vspace{2mm}
+\captionof{table}{Example prompt comparing \shortname{}, GPT-4, BLIP-2, and OpenFlamingo's visual reasoning capabilities in understanding the humor. BLIP-2 and OpenFlamingo fail to follow the user's instructions. \shortname{} and GPT-4 both explain the meme and its humor, while GPT-4 produces a more concise answer.}
+\label{tab:visual_example_chichken}  
+  \end{minipage}
+\end{table}
+
+\begin{figure}[h!]
+\centering  
+\vspace{-4mm}
+\includegraphics[width=\textwidth]{figures/website_code.pdf}
+\vspace{-1mm}
+\caption{\shortname{} generates HTML/JS code for an interactive website based on user sketch inputs. The interactive interface works after fixing a minor error (\emph{in red}) in the generated output. There is room for improvement in \shortname{}'s output, such as splitting the joke and punchline into two rows, and only revealing the punchline upon button click, to better reflect the user's intent.}
+\label{fig:example_website}
+\end{figure}
+
+\begin{figure}[h!]
+\centering  
+\vspace{-4mm}
+\includegraphics[width=\textwidth]{figures/fridge_recipe.pdf}
+\vspace{-5mm}
+\includegraphics[width=\textwidth]{figures/scene_and_review.pdf}
+\vspace{-1mm}
+\caption{\shortname{} is capable of recognizing the visual content following the user's intent, without directly prompting for visual recognition.  It also provides a detailed response when prompted with a follow-up request, and the generated response is closely related to the provided visual content.}
+\label{fig:example_recipe}
+\end{figure}
+
+\begin{figure}[h!]
+\centering  
+\vspace{-4mm}
+\includegraphics[width=\textwidth]{figures/titanic.pdf}
+\vspace{-1mm}
+\caption{\shortname{} relates the movie scenes to the textual knowledge from the pretrained LLM.}
+\label{fig:example_titanic}
+\end{figure}
+
+\begin{figure}[h!]
+\centering  
+\vspace{-4mm}
+\includegraphics[width=\textwidth]{figures/monalisa.pdf}
+\vspace{-1mm}
+\caption{\shortname{} recognizes the famous art work, Mona Lisa, by Leonardo da Vinci. When we start a new conversation, it also explains the humourous artwork created on the web, mimicking the Mona Lisa.}
+\label{fig:example_mona_lisa}
+\end{figure}
+
+\begin{figure}[h!]
+\centering  
+\vspace{-4mm}
+\includegraphics[width=\textwidth]{figures/elon_musk.pdf}
+\vspace{-1mm}
+\caption{An interesting emergent behavior of \shortname{} is its ability to recognize Elon Musk both in a headshot and in a humorous meme where he is dressed as a doge.
+This implies that the pre-trained CLIP vision encoder may have seen images of Elon Musk. However, it is still surprising because Elon Musk \emph{never} appears in the training data for either the visual feature alignment or visual instruction tuning stages of \shortname{}, which indicates that the base language model generalizes to unseen visual concepts.}
+\label{fig:example_elon_musk}
+\end{figure}
+
+\begin{table*}[t!]\centering
+\begin{minipage}{1.0\columnwidth}\vspace{0mm}    \centering
+\begin{tcolorbox} 
+    \centering
+      \footnotesize
+    \begin{tabular}{p{0.97\columnwidth} c}
+   \VarSty{ {\bf Question:} } &\\
+Which material is this rocking chair made of? &\\
+Options: (A) wood (B) silk
+& \hspace{-3.2cm} \multirow{5}{*}{ \includegraphics[height=2.0cm]{figures/sqa_judge_chair.png} }
+\\
+\VarSty{ {\bf \shortname{} answer:} } & \\
+LECTURE: A material is a type of matter. & \\
+Wood, glass, metal, and plastic are common materials. & \\
+Some objects are made of just one material. & \\
+Most nails are made of metal. & \\
+Other objects are made of more than one material. & \\
+This hammer is made of metal and wood. & \\
+SOLUTION: Look at the picture of the rocking chair.
+The rocking chair is made of two different materials. The legs are made of wood, and the back and seat are made of silk. & \\
+The answer is B. & \\
+
+\VarSty{ {\bf GPT-4 (text-only) answer:} } & \\
+The answer is A. BECAUSE: Rocking chairs are typically made of sturdy materials that can support the weight of a person and withstand the rocking motion. Wood is a common material used for making rocking chairs due to its strength, durability, and natural appearance.& \\
+
+    \hrulefill & \\
+   \VarSty{ {\bf GPT-4 (text-only) judge:} } & \\
+Since there is no context or image to refer to, I cannot independently analyze the rocking chair in question. However, I can try to analyze the reasoning given by the assistants. & \\
+Assistant 1, who claims to have seen the image, mentions that the legs of the rocking chair are made of wood, and the back and seat are made of silk, implying that it's a combination of two materials. However, this response seems less plausible, as silk is not a common material used for the construction of rocking chairs due to issues with stability and durability. Typically, one would expect the frame, legs, and seat or back to be made of wood, with cushions and padding made of fabrics, such as cotton or polyester. & \\
+Assistant 2 argues that rocking chairs are typically made of sturdy materials, and wood is a common material used for making rocking chairs due to its strength, durability, and natural appearance. This reasoning stands true and is based on common knowledge. & \\
+Given the information available, the most plausible answer is that the rocking chair is made of wood, as suggested by Assistant 1. The answer is A. &
+    \end{tabular}
+\end{tcolorbox}
+\vspace{-2mm}
+\caption{One example on how the text-only GPT-4 acts as a judge to ensemble the predictions from \shortname{} and a text-only GPT-4, and gives a correct final answer.}
+    \label{tab:science_qa_judge_example}
+\end{minipage}
+\end{table*}
+
+
+\clearpage
+
+\section{Training Details}
+
+\label{sec:appendix_training_details}
+
+We pre-train our model on the filtered CC-595K subset for 1 epoch with a learning rate of 2e-3 and a batch size of 128, and fine-tune on the proposed LLaVA-Instruct-158K dataset for 3 epochs, with a learning rate of 2e-5 and a batch size of 32. Following Vicuna, we use the Adam optimizer with no weight decay and a cosine learning rate with a warmup ratio of 3\%.  During finetuning, FSDP (Full Shard Data Parallel) and gradient checkpointing is used to save GPU memory, and offloading is not used. BF16 and TF32 are enabled to achieve a balance between speed and precision.
+
+We train all models with 8$\times$ A100s. Pretraining on CC-595K completes within 4 hours. Finetuning on Instruct-158K completes within 10 hours. Finetuning on ScienceQA completes within 4 hours.
+
+\section{Assets}
+
+Our source code, generated instruction-tuning data, proposed benchmark are uploaded to the anonymized GitHub repository: \href{https://github.com/LLaVA-Annonymous/LLaVA}{LLaVA-Annonymous/LLaVA}.
+
+\begin{enumerate}
+    \item Source Code: \href{https://github.com/LLaVA-Annonymous/LLaVA}{link}
+    \item README: \href{https://github.com/LLaVA-Annonymous/LLaVA}{link}
+    \item Instructions to launch the demo: \href{https://github.com/LLaVA-Annonymous/LLaVA#web-ui}{link}
+    \item All prompts and few shot examples for querying GPT-4: \href{https://github.com/LLaVA-Annonymous/LLaVA/tree/master/playground/data/prompts}{link}
+    \item LLaVA-Instruct-158K: \href{https://github.com/LLaVA-Annonymous/LLaVA/blob/master/playground/data/llava_instruct_150k.json}{link}
+    \item LLaVA-Bench: \href{https://github.com/LLaVA-Annonymous/LLaVA/blob/master/playground/data/coco2014_val_gpt4_qa_30x3.jsonl}{COCO}, \href{https://github.com/LLaVA-Annonymous/LLaVA/tree/master/playground/data/llava_bench_in_the_wild}{In-The-Wild}
+    \item Model checkpoints. The size of the model checkpoints after compression is 25GB, which exceeds the 5GB limit of GitHub LFS (Large File Storage).  We'll release the checkpoint to the public, or upon request with reviewers for this submission.
+\end{enumerate}
+
+\section{Data}\label{sec:appendix_data}
+
+\paragraph{Instructions for brief image description.}
+The list of instructions used to briefly describe the image content are shown in Table~\ref{tab:concise_describe_instructions}. They present the same meaning with natural language variance.
+
+
+\begin{table*}[h!]\centering
+
+\begin{minipage}{0.99\columnwidth}\vspace{0mm}    \centering
+\begin{tcolorbox} 
+    \centering
+    \small
+     \hspace{-6mm}
+\begin{itemize}[leftmargin=7.5mm]
+\setlength{\itemsep}{2pt}
+\item "Describe the image concisely."
+\item "Provide a brief description of the given image."
+\item "Offer a succinct explanation of the picture presented."
+\item "Summarize the visual content of the image."
+\item "Give a short and clear explanation of the subsequent image."
+\item "Share a concise interpretation of the image provided."
+\item "Present a compact description of the photo's key features."
+\item "Relay a brief, clear account of the picture shown."
+\item "Render a clear and concise summary of the photo."
+\item "Write a terse but informative summary of the picture."
+\item "Create a compact narrative representing the image presented."
+\end{itemize}
+
+\end{tcolorbox}
+    
+\vspace{-2mm}
+\caption{The list of instructions for brief image description.}
+    \label{tab:concise_describe_instructions}
+\end{minipage}
+\end{table*}
+
+\paragraph{Instructions for detailed image description.}
+The list of instructions used to describe the image content in detail are shown in Table~\ref{tab:detailed_describe_instructions}. They present the same meaning with natural language variance.
+
+
+\begin{table*}[h!]\centering
+
+\begin{minipage}{0.99\columnwidth}\vspace{0mm}    \centering
+\begin{tcolorbox} 
+    \centering
+    \small
+     \hspace{-6mm}
+\begin{itemize}[leftmargin=7.5mm]
+\setlength{\itemsep}{2pt}
+    \item "Describe the following image in detail"
+    \item "Provide a detailed description of the given image"
+    \item "Give an elaborate explanation of the image you see"
+    \item "Share a comprehensive rundown of the presented image"
+    \item "Offer a thorough analysis of the image"
+    \item "Explain the various aspects of the image before you"
+    \item "Clarify the contents of the displayed image with great detail"
+    \item "Characterize the image using a well-detailed description"
+    \item "Break down the elements of the image in a detailed manner"
+    \item "Walk through the important details of the image"
+    \item "Portray the image with a rich, descriptive narrative"
+    \item "Narrate the contents of the image with precision"
+    \item "Analyze the image in a comprehensive and detailed manner"
+    \item "Illustrate the image through a descriptive explanation"
+    \item "Examine the image closely and share its details"
+    \item "Write an exhaustive depiction of the given image"
+\end{itemize}
+
+\end{tcolorbox}
+    
+\vspace{-2mm}
+\caption{The list of instructions for detailed image description.}
+    \label{tab:detailed_describe_instructions}
+\end{minipage}
+\end{table*}
+
+
+
+
+\paragraph{CC3M.}
+We extract noun-phrases using Spacy for each caption over the whole CC3M dataset, 
+and  count the frequency of each unique noun-phrase.  We skip noun-phrases whose frequency is smaller than $3$, as they are usually rare combinations concept and attributes that has already been covered by other captions. We then start from the noun-phrases with lowest remaining frequency, add the captions that contain this noun-phrase to the candidate pool. If the frequency of the noun-phrase is larger than $100$, we randomly choose a subset of size $100$ out of all its captions. This results in around 595K image-text pairs.
+
+
+
+The comparison of noun-phrase statistics before and after filtering CC3M is shown in Figure~\ref{fig:cmp_noun_phrase_counter}. The filtered dataset shows a good coverage of concepts whose frequency is higher from 3, but with a smaller number of image-text pairs.
+
+
+\begin{figure*}[h!]%\vspace{-25pt}
+	\vspace{-0mm}\centering
+	\begin{tabular}{c}
+		\hspace{-3mm}
+\includegraphics[height=3.6cm]{figures/cmp_noun_phrase_counter.pdf} 
+	\end{tabular}
+	\vspace{-3mm}
+	\caption{Comparison of noun-phrase statistics before and after filtering CC3M. The total number of unique noun-phrases are reported in the legend. 
+	 }\vspace{-3mm}
+	\label{fig:cmp_noun_phrase_counter}
+\end{figure*}
+
+
+
+
+
+
+
+
+\section{Prompts}
+
+The prompt used to generate image-based conversation from ChatGPT/GPT-4 is shown in Table~\ref{tab:prompt_conversation}.
+
+\label{sec:appendix_prompts}
+
+\begin{table*}[h!]\centering
+
+\begin{minipage}{0.99\columnwidth}\vspace{0mm}    \centering
+\begin{tcolorbox} 
+    \centering
+    \small
+     \hspace{-6mm}
+    \begin{tabular}{p{0.99\columnwidth}}
+
+\begin{minipage}{0.99\columnwidth}\vspace{0mm}
+
+\VarSty{messages} = [
+            \{\var{"role":"system", "content":} f"""You are an AI visual assistant, and you are seeing a single image. What you see are provided with five sentences, describing the same image you are looking at. Answer all questions as you are seeing the image. \\
+            
+Design a conversation between you and a person asking about this photo. The answers should be in a tone that a visual AI assistant is seeing the image and answering the question.
+Ask diverse questions and give corresponding answers. \\
+
+Include questions asking about the visual content of the image, including the {\bf object types, counting the objects, object actions, object locations, relative positions between objects}, etc. Only include questions that have definite answers: \\
+(1) one can see the content in the image that the question asks about and can answer confidently; \\
+(2) one can determine confidently from the image that it is not in the image.
+Do not ask any question that cannot be answered confidently. \\
+
+Also include complex questions that are relevant to the content in the image, for example, asking about background knowledge of the objects in the image, asking to discuss about events happening in the image, etc. Again, do not ask about uncertain details.
+Provide detailed answers when answering complex questions. For example, give detailed examples or reasoning steps to make the content more convincing and well-organized.  You can include multiple paragraphs if necessary."""\}\\
+        ]
+        
+    \For{ \VarSty{sample} in   \VarSty{fewshot\_samples}}{
+         \var{\VarSty{messages}.append(\{"role":"user", "content":\VarSty{sample[`context']}\})} \; \\
+         \var{\VarSty{messages}.append(\{"role":"assistant", "content":\VarSty{sample[`response']}\} ) } \;
+         }  
+    \var{\VarSty{messages}.append(\{"role":"user", "content":`\textbackslash  n'.join(\VarSty{query})\})}
+\end{minipage}
+    \end{tabular}
+\end{tcolorbox}
+    
+\vspace{-2mm}
+\caption{For each query, we illustrate the prompt construction process for ChatGPT/GPT-4 
+ to collect \VarSty{ query[`response']}  from \VarSty{ query[`context']}, using  few-shot in-context-learning, where examples are from \VarSty{fewshot\_samples}, each example including input \VarSty{sample[`context']} and output \VarSty{sample[`response']}. Note that \VarSty{messages} is the final prompt. In this example, we provide the prompt used to generate the conversation response, please see also see its in-context-learning examples in Table~\ref{tab:example1_cap_conv} and Table~\ref{tab:example2_cap_conv} for details. We recommend readers to check out the codebase for the prompts to generated two other types of responses, including detailed decription and complex reasoning.}
+    \label{tab:prompt_conversation}
+\end{minipage}
+\end{table*}
+
+
+
+
+\begin{table*}[t!]\centering
+\begin{minipage}{1.0\columnwidth}\vspace{0mm}    \centering
+\begin{tcolorbox} 
+    \centering
+   
+    %  \hspace{-10mm}
+      \footnotesize
+    \begin{tabular}{p{0.97\columnwidth} c}
+   \VarSty{ {\bf Context type 1: Captions} } &\\
+A group of people standing outside of a black vehicle with various luggage. 
+& \hspace{-3.2cm} \multirow{5}{*}{ \includegraphics[height=2.0cm]{figures/car_bbox.jpg} }
+\\
+Luggage surrounds a vehicle in an underground parking area & \\
+People try to fit all of their luggage in an SUV.& \\
+The sport utility vehicle is parked in the public garage, being packed for a trip &\\
+Some people with luggage near a van that is transporting it.& \\
+
+\VarSty{ {\bf Context type 2: Boxes} } & \\
+person: [0.681, 0.242, 0.774, 0.694],
+person: [0.63, 0.222, 0.686, 0.516],
+person: [0.444, 0.233, 0.487, 0.34],
+backpack: [0.384, 0.696, 0.485, 0.914],
+backpack: [0.755, 0.413, 0.846, 0.692],
+suitcase: [0.758, 0.413, 0.845, 0.69],
+suitcase: [0.1, 0.497, 0.173, 0.579],
+bicycle: [0.282, 0.363, 0.327, 0.442],
+car: [0.786, 0.25, 0.848, 0.322],
+car: [0.783, 0.27, 0.827, 0.335],
+car: [0.86, 0.254, 0.891, 0.3],
+car: [0.261, 0.101, 0.787, 0.626]& \\
+
+    \hrulefill & \\
+   \VarSty{ {\bf Response type 1: conversation} } & \\
+Question: What type of vehicle is featured in the image?  &\\
+Answer: The image features a black sport utility vehicle (SUV).& \\
+Question: Where is the vehicle parked?  &\\
+Answer: The vehicle is parked in an underground parking area, likely in a public garage.   &\\
+Question: What are the people in the image doing? & \\
+Answer: The people are trying to fit all of their luggage into the SUV, likely preparing for a trip. &  \\
+   \VarSty{ {\bf Response type 2: detailed description} }& \\
+The image is an underground parking area with a black sport utility vehicle (SUV) parked. There are three people in the scene, with one person standing closer to the left side of the vehicle, another person in the middle, and the third person on the right side. They are all working together to pack their luggage into the SUV for a trip. 
+&\\
+In the parking area, various luggage items are scattered around the vehicle. There are two backpacks, one located near the left rear wheel and the other closer to the right side of the vehicle. Additionally, there are two suitcases, one on the right side of the car and another further away near the center of the parking area. A bicycle can also be seen on the left side of the vehicle. 
+&\\
+Other cars are parked around the main SUV, with one car positioned behind it and slightly to the left, another behind and slightly to the right, and the third car further behind on the right side.& \\
+   \VarSty{ {\bf Response type 3: complex reasoning} }& \\
+Question: What challenges do these people face? & \\
+Answer: In the image, a group of people is standing outside a black SUV in a parking area, surrounded by various pieces of luggage, including suitcases and backpacks. They are facing the challenge of fitting all their luggage into the black SUV. There are multiple suitcases and backpacks to be packed, which suggests that the group has a significant amount of belongings to accommodate. They might have to strategize and arrange the luggage efficiently to ensure that everything fits properly into the vehicle. Additionally, they need to consider the comfort of the passengers and visibility while driving, so the placement of the luggage must not obstruct the driver's view or make the passengers uncomfortable during the trip.&
+    \end{tabular}
+\end{tcolorbox}
+\vspace{-2mm}
+\caption{One example to illustrate the instruction-following data. The top block shows the contexts such as captions and boxes used to prompt GPT, and the bottom block shows the three types of responses. Note that the visual image is not used to prompt GPT, we only show it here as a reference.}
+    \label{tab:full_example_car_bbox}
+\end{minipage}
+\end{table*}
+
+
+\begin{table*}[h!]\centering
+\begin{minipage}{0.99\columnwidth}\vspace{0mm}    \centering
+\begin{tcolorbox} 
+    \centering
+   
+     \hspace{-4mm}
+      \scriptsize
+    \begin{tabular}{p{0.99\columnwidth}}
+   \VarSty{ {\bf Captions} } \\
+There is a movie theater that displays the show times above the doors.  \\
+A red fire hydrant is deep in the snow. \\
+The fire hydrant is in the snow near a recently plowed sidewalk.  \\
+This city has had a very hard winter with snow.  \\ 
+A hotel for dogs in the snow in winter.  \\
+    \midrule
+   \VarSty{ {\bf Conversation} } \\
+Question:  \\
+What color is the fire hydrant in the image? \\
+=== \\
+Answer: \\
+The fire hydrant in the image is red. \\
+=== \\
+Question: \\ 
+Is the fire hydrant fully covered by snow or partially visible?\\
+=== \\
+Answer: \\
+The fire hydrant is partially visible, with a significant portion of it covered by the deep snow. \\
+=== \\
+Question: \\
+What is the condition of the sidewalk near the fire hydrant? \\
+=== \\
+Answer: \\
+The sidewalk near the fire hydrant has been recently plowed, so it is relatively clear of snow compared to the surrounding area. \\
+=== \\
+Question: \\
+What does the image suggest about the winter season in the city? \\
+=== \\
+Answer: \\
+The image suggests that the winter season in the city has been quite harsh and challenging. The significant snow accumulation seen in the image indicates that the city has experienced heavy snowfall, which can lead to various difficulties and disruptions for its residents.  \\
+\\
+For instance, the deep snow covering the fire hydrant could potentially hinder its accessibility in case of emergencies, which poses safety concerns. The recently plowed sidewalk implies that the city's maintenance crews have been actively working to keep the walkways clear and safe for pedestrians, but the sheer amount of snowfall might make it difficult to keep up with the continuous snow removal efforts.  \\
+\\
+Furthermore, such extreme winter conditions can impact transportation, leading to traffic issues, delays in public transit, and increased risks of accidents due to slippery roads. It can also cause problems for businesses and schools, as people might face challenges commuting to work or attending classes. Additionally, the heavy snow can put extra strain on infrastructure, such as roofs and power lines, increasing the likelihood of structural damage or power outages.  \\
+\\
+In conclusion, the image of the red fire hydrant deep in the snow and the recently plowed sidewalk suggest that the city has faced a particularly severe winter season, with substantial snowfall that has likely caused various challenges and disruptions for its residents and infrastructure.
+    \end{tabular}
+\end{tcolorbox}
+\vspace{-2mm}
+\caption{One example used in in-context-learning to construct visual conversation data.}
+    \label{tab:example1_cap_conv}
+\end{minipage}
+\end{table*}
+
+
+
+
+
+\begin{table*}[h!]\centering
+\begin{minipage}{0.99\columnwidth}\vspace{0mm}    \centering
+\begin{tcolorbox} 
+    \centering
+   
+     \hspace{-4mm}
+      \scriptsize
+    \begin{tabular}{p{0.99\columnwidth}}
+   \VarSty{ {\bf Captions} } \\
+A man is skiing in the open snow covered hills \\
+A skier is making his way into the snow.\\
+A skier on the foothills of a huge mountain range.\\
+A skier looks at mountains while standing near a trail sign. \\
+a single person skiing by an area with a lot of bushes \\
+    \midrule
+   \VarSty{ {\bf Conversation} } \\
+Question: \\
+What is the skier doing? \\
+=== \\
+Answer: \\
+The skier is skiing in the snow-covered hills, making his way through the snow and enjoying the beautiful mountain scenery. They are also standing near a trail sign, which indicates their location on the mountain. \\
+=== \\
+Question: \\
+Are there any other people or skiers visible in the image? \\
+=== \\
+Answer: \\
+No, there is only a single person skiing in the image, and they are surrounded by an area with a lot of bushes. \\
+=== \\
+Question: \\
+What kind of skiing is the person doing? Cross-country or downhill? \\
+=== \\
+Answer: \\
+Based on what I can see in the photo, it is not possible to definitively determine whether the skier is doing cross-country or downhill skiing. However, given the presence of a trail sign and the fact that they are skiing in the foothills, it is more likely that the skier is engaged in cross-country skiing. Downhill skiing typically takes place on more steep slopes and involves ski lifts, whereas cross-country skiing often occurs on relatively flatter terrain with marked trails. \\
+=== \\
+Question: \\
+Can you explain cross-country and downhill skiing a bit more? \\
+=== \\
+Answer: \\
+Cross-country skiing and downhill skiing are two distinct types of skiing, each with its own techniques, equipment, and terrain preferences. \\
+\\
+1. Cross-Country Skiing: \\
+Also known as Nordic skiing, cross-country skiing involves traversing relatively flat terrain or gentle slopes using skis and poles. It is a popular recreational and competitive sport that focuses on endurance, balance, and aerobic fitness. Cross-country skiers use their own locomotion to move across snow-covered terrain, rather than relying on ski lifts or other forms of assistance.  \\
+There are two main techniques in cross-country skiing: \\
+- Classic: This technique involves skiing in parallel tracks, using a forward-and-backward gliding motion while keeping the skis parallel to each other. The skier uses their poles to propel themselves forward.\\
+- Skate skiing: This technique is similar to ice skating, where the skier pushes off one ski at an angle and glides on the other. It requires a smooth, groomed surface and is typically faster than the classic technique.  \\
+Cross-country ski equipment consists of lightweight skis, boots, bindings, and poles. The boots are more flexible than those used in downhill skiing, allowing for better ankle movement and control.  \\
+\\
+2. Downhill Skiing:\\
+Also known as alpine skiing, downhill skiing involves descending slopes at high speeds using skis and poles for balance and control. This sport is more focused on speed, technique, and navigating challenging terrain, including steep slopes, moguls, and even jumps. \\
+Downhill skiing can be further categorized into several disciplines, such as slalom, giant slalom, super-G, and downhill racing. Each discipline has its own set of rules, courses, and ski equipment. \\
+Downhill ski equipment includes heavier and stiffer skis, boots, bindings, and poles than those used in cross-country skiing. The boots are more rigid to provide better support and control during high-speed descents and sharp turns. \\
+\\
+In summary, cross-country skiing is an endurance-based sport that involves traveling across flat or gently sloping terrain, while downhill skiing is focused on speed and technique as skiers navigate steeper slopes and challenging terrain. Both sports require specialized equipment and techniques, but they offer different experiences and challenges to participants.
+    \end{tabular}
+\end{tcolorbox}
+\vspace{-2mm}
+\caption{One example used in in-context-learning to construct visual conversation data.}
+    \label{tab:example2_cap_conv}
+\end{minipage}
+\end{table*}
